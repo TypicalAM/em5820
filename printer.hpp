@@ -142,7 +142,8 @@ public:
     std::vector<uint8_t> data{
         0x1d,        0x76,         0x30,         static_cast<uint8_t>(mode),
         width_first, width_second, height_first, height_second};
-    return write_bytes(data) + write_bytes(bitmap);
+    data.insert(data.end(), bitmap.begin(), bitmap.end());
+    return write_bytes(data);
   }
 
   static inline constexpr uint8_t enable_ascii_9x17(uint8_t optbit) {
