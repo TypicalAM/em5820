@@ -68,14 +68,7 @@ public:
 
     libusb_free_device_list(dev_list, 1);
 
-    if (libusb_kernel_driver_active(dev_handle, 0)) {
-      int ret = libusb_detach_kernel_driver(dev_handle, 0);
-      if (ret != 0) {
-        cleanup();
-        throw std::runtime_error("Failed to detach kernel driver: " +
-                                 std::string(libusb_error_name(ret)));
-      }
-    }
+    libusb_set_auto_detach_kernel_driver(dev_handle, 1);
 
     int ret = libusb_claim_interface(dev_handle, 0);
     if (ret < 0) {
