@@ -68,7 +68,18 @@ public:
 
     libusb_free_device_list(dev_list, 1);
 
-    libusb_set_auto_detach_kernel_driver(dev_handle, 1);
+    if (libusb_kernel_driver_active(dev_handle, 0) == 1) {
+      int ret = libusb_detach_kernel_driver(dev_handle, 0);
+      if (ret != 0) {
+        libusb_close(dev_handle);
+        dev_handle = nullptr;
+        libusb_exit(ctx);
+        ctx = nullptr;
+        throw std::runtime_error("Failed to detach kernel driver: " +
+                                 std::string(libusb_error_name(ret)));
+      }
+      kernel_driver_detached_ = true;
+    }
 
     int ret = libusb_claim_interface(dev_handle, 0);
     if (ret < 0) {
@@ -173,6 +184,10 @@ public:
   void cleanup() {
     if (dev_handle) {
       libusb_release_interface(dev_handle, 0);
+      if (kernel_driver_detached_) {
+        libusb_attach_kernel_driver(dev_handle, 0);
+        kernel_driver_detached_ = false;
+      }
       libusb_close(dev_handle);
       dev_handle = nullptr;
     }
@@ -193,6 +208,7 @@ private:
 
   libusb_context *ctx = nullptr;
   libusb_device_handle *dev_handle = nullptr;
+  bool kernel_driver_detached_ = false;
 };
 } // namespace em5820
 
