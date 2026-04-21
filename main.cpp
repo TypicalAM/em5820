@@ -1,6 +1,8 @@
 #include "printer.hpp"
 #include <cstdint>
 #include <iostream>
+#include <stdexcept>
+#include <vector>
 
 using namespace em5820;
 
